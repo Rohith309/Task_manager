@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import TaskList from './TaskList';
 import TaskForm from './TaskForm';
+import Dashboard from './Dashboard';
 import './Home.css';
 
 function Home() {
@@ -215,6 +216,8 @@ function Home() {
                     <button onClick={handleLogout}>Logout</button>
                 </div>
             </div>
+
+            <Dashboard tasks={tasks} />
 
             {showAddForm && (
                 <TaskForm 

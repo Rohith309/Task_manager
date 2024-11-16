@@ -84,7 +84,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -94,7 +93,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CORS Settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
@@ -109,45 +107,44 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# CSRF Settings
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
 ]
 CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = False  
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_AGE = 31449600  # 1 year in seconds
+CSRF_COOKIE_AGE = 31449600  
 
-# Session Settings
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_AGE = 86400  # 24 hours in seconds
+SESSION_COOKIE_AGE = 86400  
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'  # Added leading slash
+
+STATIC_URL = '/static/'  
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static'  # Added static files directory
+    BASE_DIR / 'static'  
 ]
 
-# Media files
-MEDIA_URL = '/media/'  # Added media files configuration
+
+MEDIA_URL = '/media/'  
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Create required directories
+
 import os
 os.makedirs(BASE_DIR / 'static', exist_ok=True)
 os.makedirs(BASE_DIR / 'media', exist_ok=True)
