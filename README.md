@@ -5,11 +5,11 @@ A modern, brutalist-style task management application built with React and Djang
 ## Features
 
 - 🔐 User Authentication (Register/Login/Logout)
-- 📝 Create and Delete Tasks
+- 📝 Create,update and Delete Tasks
 - 🎯 Priority Levels (Low, Medium, High)
 - 📊 Status Tracking (Yet to Start, In Progress, Completed, On Hold)
 - 📅 Deadline Management
-- 💅 Brutalist Design System
+- 🎨 Brutalist Design System
 - 🔄 Real-time Updates
 - 📱 Responsive Layout
 
