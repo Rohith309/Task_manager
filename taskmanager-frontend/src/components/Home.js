@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import TaskList from './TaskList';
+import TaskForm from './TaskForm';
 import './Home.css';
 
 function Home() {
@@ -8,6 +10,7 @@ function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
     const [newTask, setNewTask] = useState({
         title: '',
         description: '',
@@ -15,6 +18,7 @@ function Home() {
         status: 'yet-to-start',
         deadline: ''
     });
+    
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,7 +27,7 @@ function Home() {
 
     const fetchTasks = async () => {
         try {
-            const response = await axios.get('tasks/');
+            const response = await axios.get('/tasks/');
             setTasks(response.data.tasks || []);
             setLoading(false);
         } catch (error) {
@@ -44,19 +48,47 @@ function Home() {
         }));
     };
 
+    const handleEditInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditingTask(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
-        
+
+        if (!newTask.title.trim()) {
+            setError('Title is required');
+            return;
+        }
+        if (!newTask.description.trim()) {
+            setError('Description is required');
+            return;
+        }
+        if (!newTask.deadline) {
+            setError('Deadline is required');
+            return;
+        }
+
         try {
-            await axios.get('csrf/');
-            
+            const deadlineDate = new Date(newTask.deadline);
+            if (isNaN(deadlineDate.getTime())) {
+                setError('Invalid deadline date');
+                return;
+            }
+
             const formattedTask = {
-                ...newTask,
-                deadline: newTask.deadline
+                title: newTask.title.trim(),
+                description: newTask.description.trim(),
+                priority: newTask.priority,
+                status: newTask.status,
+                deadline: deadlineDate.toISOString().split('T')[0]
             };
-            
-            const response = await axios.post('tasks/', formattedTask);
+
+            const response = await axios.post('/tasks/', formattedTask);
             
             if (response.status === 201) {
                 setTasks(prev => [...prev, response.data.task]);
@@ -71,47 +103,111 @@ function Home() {
             }
         } catch (error) {
             console.error('Error creating task:', error);
-            setError(
-                error.response?.data?.message || 
-                error.response?.data?.errors || 
-                'Failed to create task. Please try again.'
-            );
+            handleApiError(error, 'Failed to create task');
+        }
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        setError(null);
+
+        if (!editingTask.title.trim()) {
+            setError('Title is required');
+            return;
+        }
+        if (!editingTask.description.trim()) {
+            setError('Description is required');
+            return;
+        }
+        if (!editingTask.deadline) {
+            setError('Deadline is required');
+            return;
+        }
+
+        try {
+            const deadlineDate = new Date(editingTask.deadline);
+            if (isNaN(deadlineDate.getTime())) {
+                setError('Invalid deadline date');
+                return;
+            }
+
+            const formattedTask = {
+                title: editingTask.title.trim(),
+                description: editingTask.description.trim(),
+                priority: editingTask.priority,
+                status: editingTask.status,
+                deadline: deadlineDate.toISOString().split('T')[0]
+            };
+
+            const response = await axios.put(`/tasks/${editingTask.id}/`, formattedTask);
+            
+            if (response.status === 200) {
+                setTasks(tasks.map(task => 
+                    task.id === editingTask.id ? response.data.task : task
+                ));
+                setEditingTask(null);
+            }
+        } catch (error) {
+            console.error('Error updating task:', error);
+            handleApiError(error, 'Failed to update task');
         }
     };
 
     const handleDelete = async (taskId) => {
         try {
-            const response = await axios.delete(`tasks/${taskId}/`);
+            const response = await axios.delete(`/tasks/${taskId}/`);
             if (response.status === 200) {
                 setTasks(tasks.filter(task => task.id !== taskId));
             }
         } catch (error) {
             console.error('Error deleting task:', error);
-            setError(
-                error.response?.data?.message || 
-                'Failed to delete task. Please try again.'
-            );
+            handleApiError(error, 'Failed to delete task');
         }
+    };
+
+    const handleEdit = (task) => {
+        setEditingTask({
+            ...task,
+            deadline: task.deadline.split('T')[0]
+        });
     };
 
     const handleLogout = async () => {
         try {
-            await axios.post('logout/');
-            localStorage.removeItem('username');
-            navigate('/', { replace: true });
+            await axios.post('/logout/');
+            navigate('/');
         } catch (error) {
-            console.error('Logout error:', error);
-            localStorage.removeItem('username');
-            navigate('/', { replace: true });
+            console.error('Error logging out:', error);
+            setError('Failed to logout');
         }
     };
 
+    const handleApiError = (error, defaultMessage) => {
+        let errorMessage = defaultMessage;
+        
+        if (error.response?.data) {
+            if (error.response.data.errors) {
+                const errors = error.response.data.errors;
+                errorMessage = Object.entries(errors)
+                    .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                    .join('; ');
+            } else if (error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+        }
+        
+        setError(errorMessage);
+    };
+
     if (loading) {
-        return <div>Loading...</div>;
+        return <div className="loading">Loading...</div>;
     }
+
 
     return (
         <div className="home-container">
+            {error && <div className="error-message">{error}</div>}
+            
             <div className="header">
                 <h1>Task Manager</h1>
                 <div className="header-buttons">
@@ -120,98 +216,32 @@ function Home() {
                 </div>
             </div>
 
-            {error && <div className="error-message">{error}</div>}
-
             {showAddForm && (
-                <div className="add-task-form">
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            name="title"
-                            placeholder="Task Title"
-                            value={newTask.title}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <textarea
-                            name="description"
-                            placeholder="Task Description"
-                            value={newTask.description}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <select
-                            name="priority"
-                            value={newTask.priority}
-                            onChange={handleInputChange}
-                            required
-                        >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                        <select
-                            name="status"
-                            value={newTask.status}
-                            onChange={handleInputChange}
-                            required
-                        >
-                            <option value="yet-to-start">Yet to Start</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="hold">On Hold</option>
-                        </select>
-                        <input
-                            type="date"
-                            name="deadline"
-                            value={newTask.deadline}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <div className="form-buttons">
-                            <button type="submit">Create Task</button>
-                            <button 
-                                type="button" 
-                                onClick={() => setShowAddForm(false)}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <TaskForm 
+                    task={newTask}
+                    onSubmit={handleSubmit}
+                    onChange={handleInputChange}
+                    onCancel={() => setShowAddForm(false)}
+                />
             )}
 
-            <div className="tasks-container">
-                {tasks && tasks.length > 0 ? (
-                    tasks.map(task => (
-                        <div key={task.id} className="task-card">
-                            <h3>{task.title}</h3>
-                            <p>{task.description}</p>
-                            <div className="task-details">
-                                <span className={`priority ${task.priority}`}>
-                                    Priority: {task.priority}
-                                </span>
-                                <span className={`status ${task.status}`}>
-                                    Status: {task.status}
-                                </span>
-                                <span className="deadline">
-                                    Deadline: {new Date(task.deadline).toLocaleDateString()}
-                                </span>
-                            </div>
-                            <button 
-                                className="delete-button"
-                                onClick={() => handleDelete(task.id)}
-                            >
-                                Delete Task
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <div className="no-tasks">
-                        <p>No tasks found. Create your first task!</p>
-                    </div>
-                )}
-            </div>
+            <TaskList 
+                tasks={tasks}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
+
+            {editingTask && (
+                <div className="edit-overlay">
+                    <TaskForm 
+                        task={editingTask}
+                        onSubmit={handleUpdate}
+                        onChange={handleEditInputChange}
+                        onCancel={() => setEditingTask(null)}
+                        isEditing={true}
+                    />
+                </div>
+            )}
         </div>
     );
 }

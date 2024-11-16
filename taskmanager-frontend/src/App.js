@@ -6,19 +6,27 @@ import ProtectedRoute from './components/ProtectedRoute';
 import axios from 'axios';
 import './App.css';
 
-axios.defaults.baseURL = 'http://localhost:8000/api/users/';
+
+axios.defaults.baseURL = 'http://localhost:8000/api/users';
 axios.defaults.withCredentials = true;
 
 axios.interceptors.request.use(
     config => {
+        if (!config.url.endsWith('/')) {
+            config.url += '/';
+        }
+     
         const token = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
         if (token) {
             config.headers['X-CSRFToken'] = token.split('=')[1];
         }
         return config;
     },
-    error => Promise.reject(error)
+    error => {
+        return Promise.reject(error);
+    }
 );
+
 function App() {
     return (
         <Router>

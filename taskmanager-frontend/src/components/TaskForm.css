@@ -1,0 +1,167 @@
+.task-form {
+    width: 100%;
+    max-width: 800px;
+    border: 4px solid #000;
+    background-color: #fff;
+    padding: 2rem;
+    box-shadow: 10px 10px 0 #000;
+    margin-bottom: 2rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.edit-form {
+    margin: 0;
+    padding: 1.5rem;
+    background-color: #fff;
+    max-width: 600px;
+    width: 90%;
+}
+
+.form-field {
+    margin-bottom: 1.5rem;
+}
+
+.task-form form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.task-form input,
+.task-form textarea,
+.task-form select {
+    width: 100%;
+    padding: inherit;
+    border: 3px solid #000;
+    background-color: #fff;
+    font-weight: 600;
+    box-shadow: 5px 5px 0 #000;
+    font-size: 1rem;
+    height: 50px;
+    transition: all 0.2s ease;
+}
+
+.task-form input:focus,
+.task-form textarea:focus,
+.task-form select:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000;
+}
+
+.task-form textarea {
+    height: 120px;
+    resize: vertical;
+    min-height: 50px;
+}
+
+.task-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.form-buttons button {
+    min-width: 150px;
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 3px solid #000;
+    background-color: #fff;
+    color: #000;
+    box-shadow: 5px 5px 0 #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-buttons button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000;
+}
+
+.form-buttons button[type="submit"]:hover {
+    background-color: #296fbb;
+    border-color: #296fbb;
+    color: #fff;
+    box-shadow: 7px 7px 0 #004280;
+}
+
+.form-buttons button[type="button"]:hover {
+    background-color: #ff0000;
+    border-color: #ff0000;
+    color: #fff;
+    box-shadow: 7px 7px 0 #800000;
+}
+
+@media (max-width: 768px) {
+    .task-form {
+        padding: 1.5rem;
+        max-width: 600px;
+    }
+
+    .edit-form {
+        padding: 1.25rem;
+        width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .task-form {
+        padding: 1rem;
+        box-shadow: 7px 7px 0 #000;
+    }
+
+    .task-form input,
+    .task-form textarea,
+    .task-form select {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        height: 45px;
+        box-shadow: 4px 4px 0 #000;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .form-buttons button {
+        width: 100%;
+        min-width: unset;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .edit-form {
+        width: 100%;
+        margin: 0.5rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .task-form input,
+    .task-form textarea,
+    .task-form select {
+        font-size: 0.85rem;
+        height: 40px;
+    }
+
+    .form-buttons button {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+}

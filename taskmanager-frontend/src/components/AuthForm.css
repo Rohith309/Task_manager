@@ -149,7 +149,6 @@ body {
     width: 100%;
 }
 
-/* Animation for form flip */
 .form {
     animation: slideIn 0.5s ease-out;
 }
@@ -165,18 +164,68 @@ body {
     }
 }
 
-/* Responsive adjustments */
 @media (max-width: 480px) {
+    .container {
+        padding: 1rem;
+    }
+
     .form {
-        min-width: 320px;
+        min-width: 280px;
     }
 
     .form .form_front,
     .form .form_back {
-        padding: 2rem;
+        padding: 1.5rem;
+        gap: 15px;
     }
 
     .form_details {
         font-size: 1.5rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .input {
+        min-height: 40px;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .switch {
+        font-size: 0.8rem;
+    }
+
+    .error-message {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .form {
+        min-width: 250px;
+    }
+
+    .form .form_front,
+    .form .form_back {
+        padding: 1rem;
+    }
+
+    .form_details {
+        font-size: 1.2rem;
+    }
+
+    .input {
+        min-height: 35px;
+        font-size: 0.8rem;
+    }
+
+    .btn {
+        padding: 0.5rem;
+        font-size: 0.8rem;
     }
 }
