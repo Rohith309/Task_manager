@@ -9,8 +9,7 @@ SECRET_KEY = 'django-insecure-0!pv_o%f_%ja**q#@6*brwq^ay+6whw9j5^8l#i&7+6b&1@zi9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Fixed the ALLOWED_HOSTS syntax
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.0.2.2']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -61,8 +60,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'taskmanager_db',
         'USER': 'root',
-        'PASSWORD': 'Rohith@140503',
-        'HOST': 'localhost',
+        'PASSWORD': '1234',
+        'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
@@ -94,6 +93,10 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://10.0.2.2:8000",  
+    "http://localhost:8000",
+
+    
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
@@ -109,13 +112,19 @@ CORS_ALLOW_METHODS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "http://10.0.2.2:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000"
 ]
 CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_COOKIE_SECURE = False  
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_AGE = 31449600  
+CSRF_COOKIE_AGE = 31449600
+CSRF_COOKIE_DOMAIN = None
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+SESSION_COOKIE_NAME = 'sessionid'  
 
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from datetime import datetime
 from .models import Task
 from .serializers import TaskSerializer, UserSerializer
+from django.contrib.auth.models import User
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CSRFTokenView(APIView):
@@ -53,7 +54,6 @@ class LoginView(APIView):
             
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
             return Response({
                 "message": "Login successful",
                 "username": user.username
@@ -72,30 +72,34 @@ class LogoutView(APIView):
         })
 
 class TaskView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
-    def get(self, request, pk=None):
+    def get(self, request):
         try:
-            if pk:
-                task = Task.objects.get(id=pk, user=request.user)
-                serializer = TaskSerializer(task)
+            username = request.GET.get('username')
+            if not username:
                 return Response({
-                    "message": "Task retrieved successfully",
-                    "task": serializer.data
-                })
-            else:
-                tasks = Task.objects.filter(user=request.user).order_by('-created_at')
+                    "message": "Username is required",
+                    "tasks": []
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                user = User.objects.get(username=username)
+                tasks = Task.objects.filter(user=user).order_by('-created_at')
                 serializer = TaskSerializer(tasks, many=True)
                 return Response({
                     "message": "Tasks retrieved successfully",
                     "tasks": serializer.data
                 })
-        except Task.DoesNotExist:
-            return Response({
-                "message": "Task not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            except User.DoesNotExist:
+                print(f"User not found: {username}")  # Debug log
+                return Response({
+                    "message": "User not found",
+                    "tasks": []
+                }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
-            print("Error fetching tasks:", str(e))
+            print(f"Error fetching tasks: {str(e)}")  # Debug log
             return Response({
                 "message": f"Error fetching tasks: {str(e)}",
                 "tasks": []
@@ -103,40 +107,36 @@ class TaskView(APIView):
 
     def post(self, request):
         try:
-            print("Received data:", request.data)
             data = request.data.copy()
             
-            try:
-                deadline_str = data.get('deadline')
-                if not deadline_str:
-                    return Response({
-                        "message": "Deadline is required",
-                        "errors": {"deadline": ["This field is required."]}
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
-                deadline_date = datetime.strptime(deadline_str, '%Y-%m-%d').date()
-                data['deadline'] = deadline_date
-            except ValueError:
+            # Get the username from the request data
+            username = data.get('username')
+            if not username:
                 return Response({
-                    "message": "Invalid deadline format",
-                    "errors": {"deadline": ["Use format YYYY-MM-DD"]}
+                    "message": "Username is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
-            data['user'] = request.user.id
-            
+
+            # Get the user by username
+            from django.contrib.auth.models import User
+            try:
+                user = User.objects.get(username=username)
+                data['user'] = user.id
+            except User.DoesNotExist:
+                return Response({
+                    "message": "User not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+
             serializer = TaskSerializer(data=data)
             if serializer.is_valid():
-                task = serializer.save(user=request.user)
+                task = serializer.save(user=user)
                 return Response({
                     "message": "Task created successfully",
                     "task": TaskSerializer(task).data
                 }, status=status.HTTP_201_CREATED)
-            else:
-                print("Validation errors:", serializer.errors)
-                return Response({
-                    "message": "Invalid task data",
-                    "errors": serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "message": "Invalid task data",
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print("Error creating task:", str(e))
             return Response({
@@ -150,20 +150,29 @@ class TaskView(APIView):
                     "message": "Task ID is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            task = Task.objects.get(id=pk, user=request.user)
-            data = request.data.copy()
-
-            try:
-                deadline_str = data.get('deadline')
-                if deadline_str:
-                    deadline_date = datetime.strptime(deadline_str, '%Y-%m-%d').date()
-                    data['deadline'] = deadline_date
-            except ValueError:
+            # Get email from request data
+            email = request.data.get('email')
+            if not email:
                 return Response({
-                    "message": "Invalid deadline format",
-                    "errors": {"deadline": ["Use format YYYY-MM-DD"]}
+                    "message": "Email is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Extract username from email
+            username = email.split('@')[0]
+
+            try:
+                user = User.objects.get(username=username)
+                task = Task.objects.get(id=pk, user=user)
+            except User.DoesNotExist:
+                return Response({
+                    "message": "User not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+            except Task.DoesNotExist:
+                return Response({
+                    "message": "Task not found or you don't have permission to update it"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            data = request.data.copy()
             serializer = TaskSerializer(task, data=data, partial=True)
             if serializer.is_valid():
                 updated_task = serializer.save()
@@ -171,16 +180,11 @@ class TaskView(APIView):
                     "message": "Task updated successfully",
                     "task": TaskSerializer(updated_task).data
                 })
-            else:
-                return Response({
-                    "message": "Invalid task data",
-                    "errors": serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-        except Task.DoesNotExist:
             return Response({
-                "message": "Task not found or you don't have permission to update it"
-            }, status=status.HTTP_404_NOT_FOUND)
+                "message": "Invalid task data",
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print("Error updating task:", str(e))
             return Response({
@@ -194,17 +198,29 @@ class TaskView(APIView):
                     "message": "Task ID is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            task = Task.objects.get(id=pk, user=request.user)
-            task.delete()
-            
-            return Response({
-                "message": "Task deleted successfully"
-            })
-            
-        except Task.DoesNotExist:
-            return Response({
-                "message": "Task not found or you don't have permission to delete it"
-            }, status=status.HTTP_404_NOT_FOUND)
+            # Get username from email in query params
+            username = request.GET.get('username')
+            if not username:
+                return Response({
+                    "message": "Username is required"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                user = User.objects.get(username=username)
+                task = Task.objects.get(id=pk, user=user)
+                task.delete()
+                return Response({
+                    "message": "Task deleted successfully"
+                })
+            except User.DoesNotExist:
+                return Response({
+                    "message": "User not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+            except Task.DoesNotExist:
+                return Response({
+                    "message": "Task not found or you don't have permission to delete it"
+                }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             print("Error deleting task:", str(e))
             return Response({

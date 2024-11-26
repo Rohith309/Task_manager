@@ -9,10 +9,10 @@ class Task(models.Model):
     ]
     
     STATUS_CHOICES = [
-        ('yet-to-start', 'Yet-to-start'),
-        ('in-progress', 'In-progress'),
+        ('yet-to-start', 'Yet to Start'),
+        ('in-progress', 'In Progress'),
         ('completed', 'Completed'),
-        ('hold', 'Hold')
+        ('on-hold', 'On Hold')
     ]
     
     title = models.CharField(max_length=200)

@@ -46,8 +46,9 @@ class TaskSerializer(serializers.ModelSerializer):
         if data.get('priority') not in ['low', 'medium', 'high']:
             raise serializers.ValidationError({"priority": "Invalid priority value"})
         
-        # Validate status
-        if data.get('status') not in ['yet-to-start', 'in-progress', 'completed', 'hold']:
+        # Validate status - make sure to include 'on-hold'
+        valid_statuses = ['yet-to-start', 'in-progress', 'completed', 'on-hold']
+        if data.get('status') not in valid_statuses:
             raise serializers.ValidationError({"status": "Invalid status value"})
         
         # Validate deadline
